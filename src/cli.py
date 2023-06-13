@@ -23,8 +23,6 @@ from pass_scrambler import PassPhrase, Permutation, PassPhraseScrambler
 # Set up module logger
 log = logging.getLogger(__name__)
 
-FIGLET = True
-
 
 @click.group()
 def main() -> None:

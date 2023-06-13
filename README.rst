@@ -119,5 +119,4 @@ Using text input file:
 
     Permutation: 0, 3, 4, 2, 1
     Shift: 6
-    Unscrambled passphrase: clock, flag, house, window, kitesurfing
-
+    Unscrambled passphrase: clock, house, flag, kitesurfing, window

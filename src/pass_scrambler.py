@@ -24,7 +24,7 @@ class PassPhrase:
             cls, word_sequence: str, delimiter: str = ",") -> PassPhrase:
         """Instantiate passphrase from a string of words deliminated by a
         common delimiter"""
-        return cls(words = word_sequence.split(delimiter))
+        return cls(words = [c.strip() for c in word_sequence.split(delimiter)])
     
     def as_string(self, delimiter: str = ", ") -> str:
         """ """
@@ -41,11 +41,11 @@ class Permutation:
         return len(self.digits)
         
     def __iter__(self) -> Permutation:
+        self._index=0
         return self
         
     def __next__(self):
         if self._index >= len(self.digits):
-            self._index = 0
             raise StopIteration
         item = self.digits[self._index]
         self._index += 1
@@ -89,8 +89,8 @@ class PassPhraseScrambler:
             raise WrongShiftValueException(
                 "Shift value %d outside the permitted 1-26 range." % self.shift)
         
-        if len(set(self.permutation_pattern)) != len(self.permutation_pattern) or \
-                set(self.permutation_pattern) != set(range(0, len(self.passphrase))):
+        if len(set(self.permutation_pattern.digits)) != len(self.permutation_pattern.digits) or \
+                set(self.permutation_pattern.digits) != set(range(0, len(self.passphrase))):
             raise PermutationPatternError(
                 "Permutation pattern needs to contain numbers between 0 and " +
                 "the passphrase length and have no repeated values")
@@ -98,10 +98,17 @@ class PassPhraseScrambler:
     @staticmethod
     def _permute(
             passphrase: PassPhrase,
-            permutation_pattern: Permutation) -> PassPhrase:
+            permutation_pattern: Permutation, direction: str = "forward") -> PassPhrase:
         """ """
-        return PassPhrase([
-            passphrase.words[index] for index in permutation_pattern])
+        if direction == "forward":
+            new_passphrase = PassPhrase([passphrase.words[index] for index in permutation_pattern])
+        if direction == "reverse":
+            reversed_words: List[str] = passphrase.words.copy()
+            # Sort using indices of the permutation index
+            for _ix, value in enumerate(permutation_pattern):
+                reversed_words[value] = passphrase.words[_ix]
+            new_passphrase = PassPhrase(reversed_words)
+        return new_passphrase
     
     @staticmethod
     def _shift_letters(word: str, shift: int, direction: str) -> str:
@@ -121,7 +128,7 @@ class PassPhraseScrambler:
     
     def encode(self) -> PassPhrase:
         """ """
-        permuted_passphrase = self._permute(self.passphrase, self.permutation_pattern)
+        permuted_passphrase = self._permute(self.passphrase, self.permutation_pattern, "forward")
         scrambled_words = []
         for word in permuted_passphrase.words:
             scrambled_words.append(self._shift_letters(word, self.shift, "forward"))
@@ -129,19 +136,18 @@ class PassPhraseScrambler:
     
     def decode(self) -> PassPhrase:
         """ """
-        unpermuted_words = self._permute(self.passphrase, self.permutation_pattern)
+        unpermuted_words = self._permute(self.passphrase, self.permutation_pattern, "reverse")
         unscrambled_words = []
         for word in unpermuted_words.words:
             unscrambled_words.append(self._shift_letters(word, self.shift, "reverse"))
         return PassPhrase(unscrambled_words)
 
 
-if __name__ == "__main__":
-    permutation_pattern = [2,1,0]
-    shift = 25
+if __name__ == "__main__": 
     
-    passphrase = PassPhrase("first", "second", "third")
-    permutation_pattern = Permutation([2,1,0])
+    passphrase = PassPhrase(["first", "second", "third", "fourth", "fifth"])
+    permutation_pattern = Permutation([2,1,0,4,3])
+    shift = 25
 
     scrambler = PassPhraseScrambler(
         passphrase, 
