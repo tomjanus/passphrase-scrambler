@@ -31,12 +31,14 @@ def main() -> None:
     """--------------------- PASSPHRASE SCRAMBLER -----------------------
 
 You are using the Command Line Interface for word scrambler for encoding
-passphrases for encryption purposes. Limitations:
-  - requires words without spaces and alphanumeric symbols (i.e. pure letters only)
-  - words cannot contain capital letters
+passphrases for encryption purposes. 
+
+Limitations
+
+    - requires words without spaces and alphanumeric symbols (i.e. pure letters only).
+
+    - words cannot contain capital letters.
 """
-click.echo(click.style("\nPASPHRASE SCRAMBLER", bg='blue', fg='black'))
-click.echo(click.style("\n"))
 
 default_passphrase = ['house', 'water', 'clock']
 default_perm = ['0', '1', '2']
@@ -50,23 +52,19 @@ default_shift = 3
               type=click.STRING, help='Comma delimited list of permutation indices (0-based)')
 @click.option('-s', '--shift', is_flag=False, type=click.INT, default = default_shift, help='Letter shift (1-26)')   
 def scramble(verbose: bool, passphrase: str, permutation: str, shift: int) -> None:
-    """
-    Scrambles the provided N-word passphrase.
-    """
-    word_list = [c.strip() for c in passphrase.split(',')]
-    permutation_pattern = [int(c.strip()) for c in permutation.split(',')]
-    if verbose:
-        click.echo(click.style(f"Scrambling ..."))
-        click.echo(click.style(f"Original passphrase: {word_list}"))
-        click.echo(click.style(f"Permutation: {permutation_pattern}"))
-        click.echo(click.style(f"Shift: {shift}"))
+    """Scrambles the original N-word passphrase."""
     mangler = PassPhraseScrambler(
         PassPhrase.from_string(passphrase), 
         Permutation.from_string(permutation), 
         shift)
+    click.echo(click.style(f"Scrambling ..."))
+    if verbose:
+        click.echo(click.style(f"Original passphrase: {mangler.passphrase.as_string()}"))
+        click.echo(click.style(f"Permutation: {mangler.permutation_pattern.as_string()}"))
+        click.echo(click.style(f"Shift: {shift}"))
     mangled_passphrase = mangler.encode()
     click.echo(click.style(
-        f"Scrambled passphrase: {mangled_passphrase.words}"))
+        f"Scrambled passphrase: {mangled_passphrase.as_string()}"))
     
 
 @click.command()
@@ -78,20 +76,16 @@ def scramble(verbose: bool, passphrase: str, permutation: str, shift: int) -> No
               type=click.STRING, help='Comma delimited list of permutation indices (0-based)')
 @click.option('-s', '--shift', is_flag=False, type=click.INT, default = default_shift, help='Letter shift (1-26)')   
 def unscramble(verbose: bool, passphrase: str, permutation: str, shift: int) -> None:
-    """
-    Un-scrambles the provided N-word passphrase.
-    """
-    word_list = [c.strip() for c in passphrase.split(',')]
-    permutation_pattern = [int(c.strip()) for c in permutation.split(',')]
-    if verbose:
-        click.echo(click.style(f"Unscrambling ..."))
-        click.echo(click.style(f"Scrambled passphrase: {word_list}"))
-        click.echo(click.style(f"Permutation: {permutation_pattern}"))
-        click.echo(click.style(f"Shift: {shift}"))
+    """Un-scrambles the scrambled N-word passphrase."""
+    click.echo(click.style(f"Unscrambling ..."))
     unmangler = PassPhraseScrambler(
         PassPhrase.from_string(passphrase), 
-            permutation_pattern, 
-            shift)
+        Permutation.from_string(permutation),
+        shift)
+    if verbose:
+        click.echo(click.style(f"Scrambled passphrase: {unmangler.passphrase.as_string()}"))
+        click.echo(click.style(f"Permutation: {unmangler.permutation_pattern.as_string()}"))
+        click.echo(click.style(f"Shift: {shift}"))
     unmangled_passphrase = unmangler.decode()
     click.echo(click.style(
         f"Original passphrase: {unmangled_passphrase.as_string()}"))
@@ -99,25 +93,43 @@ def unscramble(verbose: bool, passphrase: str, permutation: str, shift: int) -> 
 
 @click.command()
 @click.argument('file', type=click.Path(exists=True))
-def scramble_file(file: str) -> None:
-    """
-    Scrambles the provided N-word passphrase.
+@click.option("-v", "--verbose", is_flag=True, 
+              help="Generate more verbose outputs.")
+def scramble_file(file: str, verbose: bool) -> None:
+    """Scrambles the N-word passphrase in a file.
+    
+    Requires a text file with three lines: 
+    - Line 1 should contain a passphrase
+    - Line 2 should contain a permutation sequence
+    - Line 3 should contain a letter shift.
     """  
     mangler = PassPhraseScrambler.from_txt_file(file)
     click.echo(click.style(f"Scrambling passphrase: {mangler.passphrase.as_string()}"))
+    if verbose:
+        click.echo(click.style(f"Permutation: {mangler.permutation_pattern.as_string()}"))
+        click.echo(click.style(f"Shift: {mangler.shift}"))
     mangled_passphrase = mangler.encode()
     click.echo(click.style(
-        f"Scrambled passphrase: {mangled_passphrase.as_string()}"))
+        f"\nScrambled passphrase: {mangled_passphrase.as_string()}"))
 
 
 @click.command()
 @click.argument('file', type=click.Path(exists=True))
-def unscramble_file(file: str) -> None:
-    """
-    Unscrambles the provided N-word passphrase.
+@click.option("-v", "--verbose", is_flag=True, 
+              help="Generate more verbose outputs.")
+def unscramble_file(file: str, verbose: bool) -> None:
+    """Unscrambles the N-word passphrase in a file.
+    
+    Requires a text file with three lines: 
+    - Line 1 should contain a passphrase
+    - Line 2 should contain a permutation sequence
+    - Line 3 should contain a letter shift.
     """
     unmangler = PassPhraseScrambler.from_txt_file(file)
     click.echo(click.style(f"Unscrambling passphrase: {unmangler.passphrase.as_string()}"))
+    if verbose:
+        click.echo(click.style(f"Permutation: {unmangler.permutation_pattern.as_string()}"))
+        click.echo(click.style(f"Shift: {unmangler.shift}"))
     unmangled_passphrase = unmangler.decode()
     click.echo(click.style(
         f"Unscrambled passphrase: {unmangled_passphrase.as_string()}"))

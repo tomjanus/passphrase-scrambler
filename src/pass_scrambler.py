@@ -60,7 +60,8 @@ class Permutation:
     
     def as_string(self, delimiter: str = ", ") -> str:
         """ """
-        return delimiter.join(self.digits)
+        digits: List[str] = list(map(str, self.digits))
+        return delimiter.join(digits)
 
 
 @dataclass
@@ -75,10 +76,6 @@ class PassPhraseScrambler:
         """ """
         with open(filename, 'r') as file:
             lines = file.readlines()
-        
-        words_line = lines[0]
-        permutation_line = lines[1]
-        shift_line = lines[2]
         
         passphrase = PassPhrase.from_string(lines[0], delimiter)
         permutation = Permutation.from_string(lines[1], delimiter)
@@ -146,13 +143,14 @@ if __name__ == "__main__":
     passphrase = PassPhrase("first", "second", "third")
     permutation_pattern = Permutation([2,1,0])
 
-    mangler = PassPhraseMangler(
+    scrambler = PassPhraseScrambler(
         passphrase, 
         permutation_pattern, 
         shift)
-    mangled_passphrase = mangler.encode()
-    print(mangled_passphrase)
-    unmangler = PassPhraseScrambler(mangled_passphrase, permutation_pattern, shift)
-    unmangled_passphrase = unmangler.decode()
-    print(unmangled_passphrase.as_string())
+    scrambled_passphrase = scrambler.encode()
+    print(scrambled_passphrase)
+    unscrambler = PassPhraseScrambler(
+        scrambled_passphrase, permutation_pattern, shift)
+    unscrambled_passphrase = unscrambler.decode()
+    print(unscrambled_passphrase.as_string())
     
