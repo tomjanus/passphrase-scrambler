@@ -25,8 +25,6 @@ PassPhraseScrambler can be installed with ``pip``:
 
 ``PassPhraseScrambler`` usage may then be displayed with:
 
-``pywrparser`` usage may then be displayed with:
-
 .. code-block:: console
 
     $ passphrase --help

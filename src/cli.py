@@ -110,7 +110,7 @@ def scramble_file(file: str, verbose: bool) -> None:
         click.echo(click.style(f"Shift: {mangler.shift}"))
     mangled_passphrase = mangler.encode()
     click.echo(click.style(
-        f"\nScrambled passphrase: {mangled_passphrase.as_string()}"))
+        f"Scrambled passphrase: {mangled_passphrase.as_string()}"))
 
 
 @click.command()
